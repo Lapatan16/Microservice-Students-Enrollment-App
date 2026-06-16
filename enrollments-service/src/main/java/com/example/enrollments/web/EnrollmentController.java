@@ -44,7 +44,6 @@ public class EnrollmentController {
             Enrollment created = service.create(dto);
             return ResponseEntity.status(HttpStatus.CREATED).body(created);
         } catch (NoSuchElementException ex) {
-            // e.g., studentId doesn't exist in StudentService
             log.warn("Student with ID {} not found when creating enrollment", dto.studentId());
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, ex.getMessage());
         } catch (IllegalArgumentException ex) {
