@@ -31,7 +31,6 @@ public class EnrollmentService {
         this.studentClient = studentClient;
     }
 
-    /** Return all enrollments */
     public List<Enrollment> all() {
             return repo.findAll();
     }
@@ -83,11 +82,9 @@ public class EnrollmentService {
     }
 
 
-    /** Update an existing enrollment */
     public Enrollment update(Long id, EnrollmentDTO dto) {
         Enrollment existing = byId(id);
 
-        // Validate student existence only if changed
         if (!existing.getStudentId().equals(dto.studentId())) {
             try {
                 StudentDTO student = fetchStudentWithResilience(dto.studentId());
@@ -106,34 +103,29 @@ public class EnrollmentService {
         return repo.save(existing);
     }
 
-    /** Delete enrollment */
     public void delete(Long id) {
         Enrollment enrollment = byId(id);
         repo.delete(enrollment);
     }
 
-    /** Aggregated view: enrollment + student details */
     public EnrollmentDetails details(Long id) {
         Enrollment enrollment = byId(id);
         try {
             StudentDTO student = fetchStudentWithResilience(enrollment.getStudentId());
             return new EnrollmentDetails(enrollment, student);
         } catch (NoSuchElementException nse) {
-            throw nse; // student missing → 404
+            throw nse;
         }
     }
 
-    /** Helper: fetch student with circuit breaker + retry */
     @CircuitBreaker(name = "studentsCB", fallbackMethod = "fetchStudentFallback")
     @Retry(name = "studentsRetry")
     public StudentDTO fetchStudentWithResilience(Long studentId) {
         try {
             return studentClient.getStudent(studentId);
         } catch (FeignException.NotFound nf) {
-            // StudentService returned 404 → handle in create/update/details
             throw new NoSuchElementException("Student with ID " + studentId + " not found");
         } catch (RetryableException rex) {
-            // Network/service down → circuit breaker fallback
             log.error("StudentService retryable exception for id={}: {}", studentId, rex.getMessage());
             throw new IllegalStateException("StudentService unreachable");
         } catch (FeignException.ServiceUnavailable su) {
@@ -145,7 +137,6 @@ public class EnrollmentService {
         }
     }
 
-    /** Circuit breaker fallback when StudentService is down */
     private StudentDTO fetchStudentFallback(Long studentId, Throwable ex) {
         log.error("fetchStudentFallback: Student service unavailable for id={} cause={}", studentId, ex.toString());
         throw new IllegalStateException("Students service unavailable (Circuit Breaker)");
