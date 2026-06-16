@@ -4,8 +4,6 @@ import jakarta.validation.constraints.*;
 
 public record EnrollmentDTO(
 
-        // @Null(message = "Id must be null when creating a new enrollment")
-        // For PUT updates, you can override validation or ignore this field
         Long id,
 
         @NotNull(message = "Student ID cannot be null")
