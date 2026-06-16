@@ -142,6 +142,5 @@ public class EnrollmentService {
         throw new IllegalStateException("Students service unavailable (Circuit Breaker)");
     }
 
-    /** Combined response for details() */
     public record EnrollmentDetails(Enrollment enrollment, StudentDTO student) {}
 }
