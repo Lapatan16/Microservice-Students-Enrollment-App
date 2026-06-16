@@ -62,7 +62,6 @@ class StudentServiceTest {
         existing.setEmail("old@example.com");
         existing.setIndexNumber("2024-001");
 
-        // FIXED: include the id as first parameter
         StudentDTO dto = new StudentDTO(1L, "New Name", "new@example.com", "2025-123");
 
         when(repo.findById(1L)).thenReturn(Optional.of(existing));
